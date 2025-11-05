@@ -1,0 +1,69 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
+import { Subject, takeUntil } from 'rxjs';
+import { GetAllProductsResponse } from 'src/app/models/products/response/GetAllProductsResponse';
+import { ProductsDataTransferService } from 'src/app/services/products/products-data-transfer.service';
+import { ProductsService } from 'src/app/services/products/products.service';
+
+@Component({
+  selector: 'app-products-home',
+  templateUrl: './products-home.component.html',
+  styleUrls: ['./products-home.component.scss']
+})
+export class ProductsHomeComponent implements OnInit, OnDestroy {
+  private readonly destroy$: Subject<void> = new Subject();
+  public productsDatas: Array<GetAllProductsResponse> = [];
+
+ constructor(
+    private productsService: ProductsService,
+    private productsDtService: ProductsDataTransferService,
+    private router: Router,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private dialogService: DialogService
+  ) {}
+   ngOnInit(): void {
+    this.getServiceProductsDatas();
+  }
+
+  getServiceProductsDatas() {
+    const productsLoaded = this.productsDtService.getProductsDatas();
+
+    if (productsLoaded.length > 0) {
+      this.productsDatas = productsLoaded;
+      console.log(this.productsDatas)
+    } else this.getAPIProductsDatas();
+  }
+
+  getAPIProductsDatas() {
+    this.productsService
+      .getAllProducts()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.length > 0) {
+            this.productsDatas = response;
+          }
+        },
+        error: (err) => {
+          console.log(err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Erro ao buscar produtos',
+            life: 2500,
+          });
+          this.router.navigate(['/dashboard']);
+        },
+      });
+  }
+
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+}
