@@ -1,12 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { DialogService } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { Subject, takeUntil } from 'rxjs';
 import { EventAction } from 'src/app/models/products/event/eventAction';
 import { GetAllProductsResponse } from 'src/app/models/products/response/GetAllProductsResponse';
 import { ProductsDataTransferService } from 'src/app/services/products/products-data-transfer.service';
 import { ProductsService } from 'src/app/services/products/products.service';
+import { ProductFormComponent } from '../../components/product-form/product-form.component';
 
 @Component({
   selector: 'app-products-home',
@@ -16,6 +17,7 @@ import { ProductsService } from 'src/app/services/products/products.service';
 export class ProductsHomeComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject();
   public productsDatas: Array<GetAllProductsResponse> = [];
+  private ref!: DynamicDialogRef;
 
  constructor(
     private productsService: ProductsService,
@@ -61,9 +63,28 @@ export class ProductsHomeComponent implements OnInit, OnDestroy {
       });
   }
 
-handleProductAction(event: EventAction): void{
-  console.log(event)
-}
+ handleProductAction(event: EventAction): void {
+    if (event) {
+      this.ref = this.dialogService.open(ProductFormComponent, {
+        header: event?.action,
+        width: '70%',
+        contentStyle: { overflow: 'auto' },
+        baseZIndex: 10000,
+        maximizable: true,
+        data: {
+          event: event,
+          productDatas: this.productsDatas,
+        },
+      });
+     this.ref.onClose.pipe(takeUntil(this.destroy$))
+     .subscribe({
+      next: () => {
+        this.getAPIProductsDatas();
+      }
+     })
+
+    }
+  }
 
 hadleDeleteProductAction(event: {product_id: string, productName: string}): void{
 if(event){
