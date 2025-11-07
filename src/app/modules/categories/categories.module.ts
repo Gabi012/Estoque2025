@@ -20,12 +20,16 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService } from 'primeng/api';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { CATEGORIES_ROUTES } from './categories.routing';
+import { CategoriesTableComponent } from './components/categories-table/categories-table.component';
+import { CategoryFormComponent } from './components/category-form/category-form.component';
 
 
 
 @NgModule({
   declarations: [
-    CategoriesHomeComponent
+    CategoriesHomeComponent,
+    CategoriesTableComponent,
+    CategoryFormComponent
   ],
   imports: [
     CommonModule,
